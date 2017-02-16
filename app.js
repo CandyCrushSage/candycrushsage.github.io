@@ -25,8 +25,6 @@
             console.warn('[SW] Eroare la getSubscription()', err);
         });
     });
-}
-
 
 
 function push_sendSubscriptionToServer(subscription, action) {
