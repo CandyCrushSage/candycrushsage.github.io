@@ -1,15 +1,20 @@
 <html>
 <head>
 <link rel="manifest" href="manifest.json">
-<script src="https://code.jquery.com/jquery-3.1.1.slim.min.js" integrity="sha256-/SIrNqv8h6QGKDuNoLGA4iret+kyesCkHGzVUUV0shc=" crossorigin="anonymous"></script>
+<script
+			  src="https://code.jquery.com/jquery-3.1.1.min.js"
+			  integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+			  crossorigin="anonymous"></script>
 </head>
 <body>
 
 <div class="registration">
 Salut! Doresti sa primesti notificari despre stiri explozive?
-<button id="inregistrare">Da, te rog</button>
+<button id="abonare" class='notificare'>Da, te rog</button>
+<button id="dezabonare" class='notificare'>Nu mai vreau notificari</button>
 </div>
 
+<div id="propertiesAlertPanel"></div>
 <div id='subscription'>
 
 </div>
@@ -32,7 +37,8 @@ $( document ).ready(function() {
   $('.send').hide();
 var endpoint;
 
-$("#inregistrare").click(function(){
+$(".notificare").click(function(){
+  var idBtn = this.id;
   // Register a Service Worker.
   navigator.serviceWorker.register('app.js')
   .then(function(registration) {
@@ -50,23 +56,32 @@ $("#inregistrare").click(function(){
     });
   }).then(function(subscription) {
     console.log(subscription);
-    var serialised = JSON.stringify(subscription);
-    document.getElementById('subscription').textContent = "Datele utilizatorului: "+serialised;
     endpoint = subscription.endpoint;
+    if(idBtn == 'abonare') {
+    var abonat = 1;
+  } else {
+    var abonat = 0;
+  }
+    var sub = JSON.stringify(subscription);
+
+    $('#subscription').html("Endpoint: "+endpoint +  " <br/> obiect: "+ sub);
+
+
 
     // Show curl command to send the notification on the page.
     document.getElementById('curl').textContent = 'curl -H "TTL: 60" -X POST ' + endpoint;
 
-    // Send the subscription details to the server using the Fetch API.
-    fetch('./register', {
-      method: 'post',
-      headers: {
-        'Content-type': 'application/json'
-      },
-      body: JSON.stringify({
-        endpoint: subscription.endpoint,
-      }),
-    });
+    $.ajax({
+               type: "POST",
+               url: './register.php',
+               data: { 'endpoint': endpoint, 'detalii': sub, 'abonat': abonat},
+               success: function (data)
+               {
+                   $("#propertiesAlertPanel").html("<span style='color:darkgreen'>S-a salvat cu succes</span><br/>" +  data);
+               }
+           });
+
+
   });
 });
 
